@@ -2,21 +2,21 @@
 
 ## Project Description
 
-saarvis is a modern Twitch chatbot based on Python that uses OpenAI for AI-powered responses and ElevenLabs for text-to-speech. Configuration is done via a .env file.
+saarvis is a modern Twitch chatbot based on Python, utilizing OpenAI for AI responses and ElevenLabs for text-to-speech. Configuration is managed via a .env file.
 
 ## Features
 
 - Welcomes new users in the Twitch chat
 - AI-powered responses to messages with @Nicole
-- Text-to-speech of responses via ElevenLabs (TTS)
+- Text-to-speech output of responses via ElevenLabs (TTS)
 - Flexible configuration of voice and model via environment variables
-- Reliable audio playback via mpg123/mpv
-- Easy adjustment of the OpenAI model and API keys via .env
-- Status check of the OpenAI interface at startup
+- Reliable audio playback using mpg123/mpv
+- Easy adjustment of OpenAI model and API keys via .env
+- Status check of the OpenAI API on startup
 
 ## Installation
 
-For installation, I use the tool [uv](https://docs.astral.sh/uv/) instead of the more commonly expected pip. This makes installation easier and much faster.
+For installation, the [uv](https://docs.astral.sh/uv/) tool is used instead of pip, making the process simpler and much faster.
 
 1. **Clone the repository**
 
@@ -43,7 +43,7 @@ For installation, I use the tool [uv](https://docs.astral.sh/uv/) instead of the
    cp prompt.txt.example prompt.txt   
    ```
 
-   The content of the provided prompt is just an example and should be adapted to your own needs.
+   The provided prompt is just an example and should be adapted to your needs.
 
 ## Usage
 
@@ -53,33 +53,29 @@ Start the bot with:
 uv run main.py
 ```
 
-![alt text](start.png)
-
-All required modules will be installed on first start.
+On the first run, all required modules will be installed automatically.
 
 ## System Requirements
 
-- Python 3.13 
-- [uv](https://docs.astral.sh/uv/) 
+- Python 3.13
+- [uv](https://docs.astral.sh/uv/)
 - mpg123 or mpv for audio playback
 - [ElevenLabs](https://elevenlabs.io/) account for TTS
 
 ## Tests
 
-Tests are located in the `tests/` directory and can be started as follows:
+Tests are located in the `tests/` directory and can be run with:
 
 ```bash
 uv run pytest tests/test_main.py
 ```
-
-![alt text](tests.png)
-
 
 ## License
 
 This project is licensed under the MIT License. See [LICENSE](LICENSE) for details.
 
 ## Author
+
 Martin Jochum <mjochum64@gmail.com>
 
 ---
