@@ -7,6 +7,8 @@ from ai_responder import AIResponder
 from twitchio.ext import commands
 import subprocess
 from typing import List
+import threading
+from ptt import ptt_listener_background
 
 class Bot(commands.Bot):
     """Twitch-Chatbot mit OpenAI- und ElevenLabs-TTS-Integration."""
@@ -190,5 +192,7 @@ class Bot(commands.Bot):
 
 if __name__ == "__main__":
     dotenv.load_dotenv()
+    # PTT-Listener im Hintergrund starten
+    threading.Thread(target=ptt_listener_background, daemon=True).start()
     bot = Bot()
     bot.run()
