@@ -38,6 +38,14 @@ Dadurch wird die Installation einfacher und auch viel schneller.
    ELEVENLABS_MODEL_ID=eleven_multilingual_v2
    ```
 
+3. **prompt.txt anlegen**:
+
+   ```bash
+   cp prompt.txt.example prompt.txt   
+   ```
+
+   Der Inhalt des vorliegenden Prompts dient nur als Beispiel und sollte an die eigenen Bedürfnisse angepasst werden.
+
 ## Nutzung
 
 Starte den Bot mit:
@@ -53,9 +61,9 @@ Beim ersten Start werden alle benötigten Module installiert.
 ## Systemvoraussetzungen
 
 - Python 3.13 
-- uv 
+- [uv](https://docs.astral.sh/uv/) 
 - mpg123 oder mpv für die Audiowiedergabe
-- ElevenLabs-Account für TTS
+- [ElevenLabs](https://elevenlabs.io/)-Account für TTS
 
 ## Tests
 
