@@ -1,5 +1,8 @@
 # Changelog
 
+## 1.0.1 (2025-04-17)
+- Der Bot reagiert jetzt ausschließlich auf Nachrichten mit @Nicole. Die Unterstützung für /Nicole als Trigger wurde entfernt, da Twitch Nachrichten mit / als fehlerhafte Befehle behandelt.
+
 ## 1.0.0 (2025-04-17)
 - **Release 1.0.0:** Siehe nachfolgende Einträge für alle enthaltenen Features und Bugfixes.
 

@@ -1,4 +1,4 @@
-# saarvis – Twitch Chatbot with OpenAI and ElevenLabs TTS
+# saarvis – Twitch Chatbot mit OpenAI und ElevenLabs TTS
 
 **Aktuelle Version:** 1.0.0
 
@@ -63,6 +63,10 @@ On the first run, all required modules will be installed automatically.
 - [uv](https://docs.astral.sh/uv/)
 - mpg123 or mpv for audio playback
 - [ElevenLabs](https://elevenlabs.io/) account for TTS
+
+## Hinweis zur Ansprache des Bots
+
+Ab Version 1.0.1: Der Bot reagiert ausschließlich auf Nachrichten mit @Nicole im Text. Die Verwendung von /Nicole als Trigger ist nicht mehr möglich, da Twitch Nachrichten mit / als fehlerhafte Befehle behandelt.
 
 ## Hinweis zu langen Texten und Timeout bei TTS
 

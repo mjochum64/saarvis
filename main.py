@@ -156,7 +156,7 @@ class Bot(commands.Bot):
             logging.error("TTS-Fehler: %s", exc)
 
     async def event_message(self, message) -> None:
-        """Reagiert auf Nachrichten mit @Nicole oder /Nicole und gibt eine KI-Antwort mit TTS aus.
+        """Reagiert auf Nachrichten mit @Nicole und gibt eine KI-Antwort mit TTS aus.
 
         Die Antwort wird in Blöcke von maximal 500 Zeichen aufgeteilt, wobei der Username-Prefix beim ersten Block mitgerechnet wird.
         Die Trennung erfolgt nur an Wortgrenzen.
@@ -167,7 +167,7 @@ class Bot(commands.Bot):
         if message.echo:
             return
         content = message.content.lower()
-        if ("@nicole" in content) or content.startswith("/nicole"):
+        if "@nicole" in content:
             prompt = message.content
             ai_reply = self.ai.get_response(prompt)
             max_total_length = 500

@@ -1,4 +1,4 @@
-# saarvis – Twitch Chatbot with OpenAI and ElevenLabs TTS
+# saarvis – Twitch Chatbot mit OpenAI und ElevenLabs TTS
 
 **Current version:** 1.0.0
 
@@ -15,6 +15,10 @@ saarvis is a modern Twitch chatbot based on Python that uses OpenAI for AI-power
 - Reliable audio playback via mpg123/mpv
 - Easy adjustment of the OpenAI model and API keys via .env
 - Status check of the OpenAI interface at startup
+
+## Hinweis zur Ansprache des Bots
+
+Ab Version 1.0.1: Der Bot reagiert ausschließlich auf Nachrichten mit @Nicole im Text. Die Verwendung von /Nicole als Trigger ist nicht mehr möglich, da Twitch Nachrichten mit / als fehlerhafte Befehle behandelt.
 
 ## Installation
 
