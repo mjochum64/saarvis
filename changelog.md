@@ -1,5 +1,8 @@
 # Changelog
 
+## 1.0.0 (2025-04-17)
+- **Release 1.0.0:** Siehe nachfolgende Einträge für alle enthaltenen Features und Bugfixes.
+
 ## 2025-04-17
 - Die Anzahl der generierten Token ist jetzt einstellbar, default sind nun 500.
 - Lange Antworten der KI-Schnittstelle werden nun aufgeteilt.

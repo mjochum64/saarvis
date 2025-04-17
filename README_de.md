@@ -1,5 +1,7 @@
 # saarvis – Twitch Chatbot with OpenAI and ElevenLabs TTS
 
+**Aktuelle Version:** 1.0.0
+
 ## Project Description
 
 saarvis is a modern Twitch chatbot based on Python, utilizing OpenAI for AI responses and ElevenLabs for text-to-speech. Configuration is managed via a .env file.
