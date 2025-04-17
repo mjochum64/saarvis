@@ -6,7 +6,7 @@ import tempfile
 from ai_responder import AIResponder
 from twitchio.ext import commands
 import subprocess
-from typing import Optional
+from typing import List
 
 class Bot(commands.Bot):
     """Twitch-Chatbot mit OpenAI- und ElevenLabs-TTS-Integration."""
@@ -25,7 +25,8 @@ class Bot(commands.Bot):
             system_prompt=os.environ.get('OPENAI_SYSTEM_PROMPT', 'Du bist ein hilfreicher, freundlicher Chatbot für Twitch.').replace('\\n', '\n'),
             system_prompt_file=os.environ.get('OPENAI_SYSTEM_PROMPT_FILE')
         )
-        logging.basicConfig(level=logging.INFO)
+        log_level = os.getenv('LOG_LEVEL', 'INFO').upper()
+        logging.basicConfig(level=getattr(logging, log_level, logging.INFO))
 
     async def test_openai_connection(self) -> str:
         """Testet die Verbindung zur OpenAI-API und gibt eine Statusmeldung zurück.
@@ -38,7 +39,7 @@ class Bot(commands.Bot):
             if response and "Entschuldigung" not in response:
                 return "OpenAI-Schnittstelle erreichbar."
             return "OpenAI-Schnittstelle antwortet nicht wie erwartet."
-        except Exception as exc:
+        except requests.RequestException as exc:
             logging.error("OpenAI-Statusprüfung fehlgeschlagen: %s", exc)
             return f"OpenAI-Schnittstelle FEHLER: {exc}"
 
@@ -54,12 +55,54 @@ class Bot(commands.Bot):
             await channel.send(f"Willkommen im Chat, @{user.name}! Viel Spaß beim Zuschauen!")
             self.greeted_users.add(user.name)
 
-    async def speak_text(self, text: str) -> None:
-        """
-        Wandelt Text mittels ElevenLabs API in Sprache um und spielt die Audiodatei ab.
+    @staticmethod
+    def split_text_on_word_boundary(text: str, max_length: int) -> List[str]:
+        """Splits text into blocks of up to max_length characters, breaking only at word boundaries.
 
         Args:
-            text (str): Der zu sprechende Text.
+            text (str): The text to split.
+            max_length (int): Maximum length of each block.
+
+        Returns:
+            List[str]: List of text blocks, each not exceeding max_length and not splitting words.
+        """
+        words = text.split()
+        blocks = []
+        current_block = ''
+        for word in words:
+            if current_block:
+                # +1 for the space
+                if len(current_block) + 1 + len(word) > max_length:
+                    blocks.append(current_block)
+                    current_block = word
+                else:
+                    current_block += ' ' + word
+            else:
+                if len(word) > max_length:
+                    # If a single word is longer than max_length, split it hard
+                    blocks.append(word[:max_length])
+                    current_block = word[max_length:]
+                else:
+                    current_block = word
+        if current_block:
+            blocks.append(current_block)
+        return blocks
+
+    async def speak_text(self, text: str) -> None:
+        """
+        Converts text to speech using the ElevenLabs API and plays the resulting audio file.
+
+        Args:
+            text (str): The text to be spoken.
+
+        Raises:
+            requests.RequestException: If a network or API error occurs.
+            IOError: If audio file handling fails.
+
+        Notes:
+            - The timeout for the ElevenLabs API request is set to 60 seconds to support longer texts.
+            - For best reliability, keep texts reasonably short (e.g., <1000 characters).
+            - If a timeout occurs, a clear error is logged and the user is advised to shorten the text.
         """
         api_key = os.environ.get('ELEVENLABS_API_KEY', 'PLACEHOLDER_API_KEY')
         voice_id = os.environ.get('ELEVENLABS_VOICE_ID', 'tKmESGVo91DcC5kFPRS6')
@@ -75,8 +118,20 @@ class Bot(commands.Bot):
             "voice_settings": {"stability": 0.75, "similarity_boost": 0.25}
         }
         try:
-            response = requests.post(url, headers=headers, json=payload, timeout=15)
-            response.raise_for_status()
+            response = requests.post(url, headers=headers, json=payload, timeout=60)
+            try:
+                response.raise_for_status()
+            except requests.HTTPError as http_exc:
+                error_detail = None
+                try:
+                    error_json = response.json()
+                    error_detail = error_json.get('detail') or error_json.get('message') or str(error_json)
+                except Exception:
+                    error_detail = response.text
+                logging.error(
+                    "TTS-Fehler (HTTP %s): %s | Detail: %s", response.status_code, http_exc, error_detail
+                )
+                return
             with tempfile.NamedTemporaryFile(delete=False, suffix='.mp3') as tmp_file:
                 tmp_file.write(response.content)
                 tmp_file.flush()
@@ -93,20 +148,42 @@ class Bot(commands.Bot):
                     try:
                         os.remove(tmp_file.name)
                         logging.info("TTS-Audiodatei gelöscht: %s", tmp_file.name)
-                    except Exception as rm_exc:
+                    except OSError as rm_exc:
                         logging.warning("Konnte TTS-Audiodatei nicht löschen: %s", rm_exc)
+        except requests.Timeout:
+            logging.error("TTS-Fehler: Die Anfrage an ElevenLabs hat das Timeout überschritten (60s). Text ggf. kürzen oder später erneut versuchen.")
         except (requests.RequestException, IOError) as exc:
             logging.error("TTS-Fehler: %s", exc)
 
     async def event_message(self, message) -> None:
-        """Reagiert auf Nachrichten mit @Nicole oder /Nicole und gibt eine KI-Antwort mit TTS aus."""
+        """Reagiert auf Nachrichten mit @Nicole oder /Nicole und gibt eine KI-Antwort mit TTS aus.
+
+        Die Antwort wird in Blöcke von maximal 500 Zeichen aufgeteilt, wobei der Username-Prefix beim ersten Block mitgerechnet wird.
+        Die Trennung erfolgt nur an Wortgrenzen.
+        
+        Args:
+            message: Die empfangene Twitch-Chatnachricht.
+        """
         if message.echo:
             return
         content = message.content.lower()
         if ("@nicole" in content) or content.startswith("/nicole"):
             prompt = message.content
             ai_reply = self.ai.get_response(prompt)
-            await message.channel.send(f"@{message.author.name} {ai_reply}")
+            max_total_length = 500
+            prefix = f"@{message.author.name} "
+            # Ersten Block so splitten, dass prefix+block <= 500
+            first_block_max = max_total_length - len(prefix)
+            blocks = self.split_text_on_word_boundary(ai_reply, first_block_max)
+            if blocks:
+                first_block = blocks[0]
+                await message.channel.send(f"{prefix}{first_block}")
+                # Restliche Blöcke ggf. weiter splitten (ohne Prefix, max 500)
+                rest = ' '.join(blocks[1:])
+                if rest:
+                    rest_blocks = self.split_text_on_word_boundary(rest, max_total_length)
+                    for block in rest_blocks:
+                        await message.channel.send(block)
             await self.speak_text(ai_reply)
             return
         await self.handle_commands(message)

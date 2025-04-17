@@ -56,31 +56,3 @@ uv run main.py
 ![alt text](start.png)
 
 All required modules will be installed on first start.
-
-## System Requirements
-
-- Python 3.13 
-- [uv](https://docs.astral.sh/uv/) 
-- mpg123 or mpv for audio playback
-- [ElevenLabs](https://elevenlabs.io/) account for TTS
-
-## Tests
-
-Tests are located in the `tests/` directory and can be started as follows:
-
-```bash
-uv run pytest tests/test_main.py
-```
-
-![alt text](tests.png)
-
-
-## License
-
-This project is licensed under the MIT License. See [LICENSE](LICENSE) for details.
-
-## Author
-Martin Jochum <mjochum64@gmail.com>
-
----
-*Created on 16.04.2025*

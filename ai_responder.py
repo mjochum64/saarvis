@@ -7,7 +7,6 @@ PEP 8/PEP 257-konform, mit Fehlerbehandlung und Logging.
 import openai
 import logging
 import os
-from typing import Optional
 
 class AIResponder:
     """Handles communication with the OpenAI API for chat responses."""
@@ -27,18 +26,19 @@ class AIResponder:
             try:
                 with open(system_prompt_file, "r", encoding="utf-8") as f:
                     prompt = f.read().strip()
-            except Exception as e:
-                logging.error(f"Fehler beim Laden des System-Prompts aus Datei: {e}")
+            except FileNotFoundError as e:
+                logging.error("Fehler beim Laden des System-Prompts aus Datei: %s", e)
         self.system_prompt = prompt or system_prompt or "Du bist ein hilfreicher, freundlicher Chatbot für Twitch."
+        self.max_tokens = int(os.environ.get("OPENAI_MAX_TOKENS", 100))
         openai.api_key = api_key
 
-    def get_response(self, prompt: str, max_tokens: int = 100, temperature: float = 0.7) -> str:
+    def get_response(self, prompt: str, max_tokens: int = None, temperature: float = 0.7) -> str:
         """
         Sends a prompt to the OpenAI API and returns the response.
 
         Args:
             prompt (str): The user's message.
-            max_tokens (int): Maximum number of tokens in the response.
+            max_tokens (int, optional): Maximum number of tokens in the response. Defaults to value from environment.
             temperature (float): Sampling temperature.
 
         Returns:
@@ -52,10 +52,15 @@ class AIResponder:
             response = openai.chat.completions.create(
                 model=self.model,
                 messages=messages,
-                max_tokens=max_tokens,
+                max_tokens=max_tokens if max_tokens is not None else self.max_tokens,
                 temperature=temperature,
             )
+            if logging.getLogger().isEnabledFor(logging.DEBUG):
+                logging.debug("OpenAI API response: %r", response)
             return response.choices[0].message.content.strip()
-        except Exception as e:
-            logging.error(f"OpenAI API error: {e}")
+        except openai.OpenAIError as e:
+            logging.error("OpenAI API error: %s", e)
             return "Entschuldigung, ich kann gerade nicht antworten."
+        except Exception as e:
+            logging.error("Unerwarteter Fehler: %s", e)
+            return "Entschuldigung, ein unerwarteter Fehler ist aufgetreten."

@@ -119,3 +119,27 @@ async def test_speak_text_mpg123_fails(monkeypatch):
         except subprocess.CalledProcessError:
             pass  # Falls auch mpv fehlschlägt, ignorieren für diesen Test
         mock_rm.assert_called()
+
+@pytest.mark.asyncio
+async def test_speak_text_quota_exceeded(monkeypatch, caplog):
+    """Testet, ob speak_text bei einem HTTP-Fehler (z.B. Kontingent überschritten) korrekt loggt."""
+    import requests
+    os.environ['ELEVENLABS_API_KEY'] = 'dummy'
+    os.environ['ELEVENLABS_VOICE_ID'] = 'dummy_voice'
+    os.environ['ELEVENLABS_MODEL_ID'] = 'dummy_model'
+    bot = Bot()
+    class DummyResponse:
+        status_code = 402
+        content = b""
+        def raise_for_status(self):
+            raise requests.HTTPError("402 Payment Required")
+        def json(self):
+            return {"detail": "quota exceeded"}
+        @property
+        def text(self):
+            return '{"detail": "quota exceeded"}'
+    monkeypatch.setattr("requests.post", lambda *a, **kw: DummyResponse())
+    with caplog.at_level("ERROR"):
+        await bot.speak_text("Testausgabe")
+    assert "quota exceeded" in caplog.text
+    assert "TTS-Fehler (HTTP 402)" in caplog.text

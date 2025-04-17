@@ -62,6 +62,10 @@ On the first run, all required modules will be installed automatically.
 - mpg123 or mpv for audio playback
 - [ElevenLabs](https://elevenlabs.io/) account for TTS
 
+## Hinweis zu langen Texten und Timeout bei TTS
+
+**Achtung:** Die Sprachausgabe (Text-to-Speech, TTS) über ElevenLabs kann bei sehr langen Texten (>1000 Zeichen) zu Zeitüberschreitungen führen. Das Timeout für die API-Anfrage beträgt 60 Sekunden. Sollte ein Timeout auftreten, kürze den Text oder versuche es später erneut.
+
 ## Tests
 
 Tests are located in the `tests/` directory and can be run with:
