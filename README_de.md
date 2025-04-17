@@ -1,6 +1,6 @@
 # saarvis – Twitch Chatbot mit OpenAI und ElevenLabs TTS
 
-**Aktuelle Version:** 1.0.0
+**Aktuelle Version:** 1.0.1
 
 ## Project Description
 
