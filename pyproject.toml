@@ -1,6 +1,6 @@
 [project]
 name = "saarvis"
-version = "1.0.1"
+version = "1.1.0"
 description = "Twitch-Chatbot mit OpenAI- und ElevenLabs-TTS-Integration"
 readme = "README.md"
 requires-python = ">=3.13"
@@ -11,6 +11,10 @@ dependencies = [
     "twitchio>=2.10.0",
     "openai>=1.0.0",
     "requests>=2.31.0",
+    "sounddevice>=0.5.1",
+    "scipy>=1.15.2",
+    "pynput>=1.8.1",
+    "numpy>=2.2.4",
 ]
 [tool.pytest.ini_options]
 asyncio_default_fixture_loop_scope = "function"

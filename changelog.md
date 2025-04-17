@@ -1,5 +1,16 @@
 # Changelog
 
+## 1.1.0 (2025-04-17)
+- Major Release: Push-to-Talk (PTT) ist jetzt vollständig als Hintergrundprozess in den Bot integriert.
+- Individuelle Prompts (z.B. aus prompt.txt/.env) werden jetzt auch für PTT-Audio genutzt.
+- Die Datei ptt_audio.py wurde entfernt, die gesamte Logik befindet sich nun in ptt.py und wird von main.py aus gestartet.
+- Diverse interne Verbesserungen und Refactoring.
+
+## 1.0.2 (2025-04-17)
+- Push-to-Talk (PTT) ist jetzt vollständig in den Bot integriert und läuft als Hintergrundprozess.
+- Die Datei ptt_audio.py wurde entfernt, die gesamte Logik befindet sich nun in ptt.py und wird von main.py aus gestartet.
+- Sprachaufnahmen werden weiterhin per Maus5 getriggert, aber direkt im Kontext des Bots verarbeitet.
+
 ## 1.0.1 (2025-04-17)
 - Der Bot reagiert jetzt ausschließlich auf Nachrichten mit @Nicole. Die Unterstützung für /Nicole als Trigger wurde entfernt, da Twitch Nachrichten mit / als fehlerhafte Befehle behandelt.
 
