@@ -7,7 +7,7 @@ saarvis ist ein moderner Twitch-Chatbot auf Python-Basis, der OpenAI für KI-Ant
 ## Features
 
 - Begrüßung neuer Nutzer im Twitch-Chat
-- KI-gestützte Antworten auf Nachrichten mit @Nicole oder /Nicole
+- KI-gestützte Antworten auf Nachrichten mit @Nicole
 - Sprachausgabe der Antworten via ElevenLabs (TTS)
 - Flexible Konfiguration von Voice und Modell über Umgebungsvariablen
 - Zuverlässige Audiowiedergabe via mpg123/mpv
@@ -16,7 +16,7 @@ saarvis ist ein moderner Twitch-Chatbot auf Python-Basis, der OpenAI für KI-Ant
 
 ## Installation
 
-Für die Installation verwende ich das Tool uv und nicht wie vieleicht erwartet pip. 
+Für die Installation verwende ich das Tool [uv](https://docs.astral.sh/uv/) und nicht wie vieleicht erwartet pip. 
 Dadurch wird die Installation einfacher und auch viel schneller.
 
 1. **Repository klonen**
@@ -46,6 +46,8 @@ Starte den Bot mit:
 uv run main.py
 ```
 
+![alt text](start.png)
+
 Beim ersten Start werden alle benötigten Module installiert.
 
 ## Systemvoraussetzungen
@@ -62,6 +64,9 @@ Tests befinden sich im Verzeichnis `tests/` und können wie folgt gestartet werd
 ```bash
 uv run pytest tests/test_main.py
 ```
+
+![alt text](tests.png)
+
 
 ## Lizenz
 
