@@ -9,6 +9,7 @@
 - Extended README.md with sections on dependency check, prompt.txt customization, and PTT usage.
 - Tests: Added docstrings and type annotations, included a test for missing environment variables, removed invalid test cases.
 - Performed code and security review and implemented recommendations.
+- The IGNORED_USERS list can now be configured via the IGNORED_USERS environment variable in your .env file (comma-separated, case-insensitive). If not set, it defaults to {"saaromansbot", "streamelements"}. This allows you to easily adjust which users are ignored without changing the code.
 
 ## 1.1.1 (2025-04-18)
 - Release version 1.1.1.

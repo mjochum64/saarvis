@@ -1,15 +1,14 @@
+import threading
+import os
+from typing import Any, List
+import tempfile
+import logging
+from pynput import mouse
 import sounddevice as sd
 import numpy as np
 import scipy.io.wavfile as wav
-from pynput import mouse
-import threading
-import time
 import requests
-import tempfile
-import os
 from ai_responder import AIResponder
-from typing import Any, List
-import logging
 
 logging.basicConfig(level=logging.INFO)
 
@@ -28,7 +27,7 @@ class PTTRecorder:
         self.stream: Any = None
         self.lock: threading.Lock = threading.Lock()
 
-    def _callback(self, indata: np.ndarray, frames: int, time_info: Any, status: Any) -> None:
+    def _callback(self, indata: np.ndarray, _frames: int, _time_info: Any, _status: Any) -> None:
         """Callback for sounddevice InputStream. Appends audio frames if recording."""
         if self.recording:
             with self.lock:
@@ -54,7 +53,7 @@ class PTTRecorder:
             filename (str): Path to save the recorded WAV file.
         """
         if self.recording:
-            logging.info(f"Aufnahme gestoppt. Speichere nach {filename}")
+            logging.info("Aufnahme gestoppt. Speichere nach %s", filename)
             self.recording = False
             self.stream.stop()
             self.stream.close()

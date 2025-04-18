@@ -4,7 +4,7 @@
 
 ## Description
 
-saarvis is a modern Twitch chatbot written in Python that leverages OpenAI for AI-powered responses and ElevenLabs for text-to-speech (TTS). 
+saarvis is a modern Twitch chatbot written in Python that leverages OpenAI for AI-powered responses and ElevenLabs for text-to-speech (TTS).
 Configuration is managed via a `.env` file.
 
 ## Features
@@ -38,6 +38,7 @@ For installation, the [uv](https://docs.astral.sh/uv/) tool is used instead of t
    ELEVENLABS_API_KEY=<your_elevenlabs_key>
    ELEVENLABS_VOICE_ID=<your_voice_id>
    ELEVENLABS_MODEL_ID=eleven_multilingual_v2
+   IGNORED_USERS=saaromansbot,streamelements,anotherbot
    ```
 
 3. **Create prompt.txt**:
@@ -52,13 +53,14 @@ For installation, the [uv](https://docs.astral.sh/uv/) tool is used instead of t
 
 On startup, saarvis checks for all required environment variables. If any are missing, the bot will exit with a clear error message. Make sure your `.env` file contains at least the following:
 
-```
+```env
 TMI_TOKEN=<your_twitch_token>
 TWITCH_CHANNEL=<your_channel>
 OPENAI_API_KEY=<your_openai_key>
 ELEVENLABS_API_KEY=<your_elevenlabs_key>
 ELEVENLABS_VOICE_ID=<your_voice_id>
 ELEVENLABS_MODEL_ID=eleven_multilingual_v2
+IGNORED_USERS=saaromansbot,streamelements,anotherbot
 ```
 
 ## Customizing the Prompt
@@ -72,6 +74,18 @@ Your answers should be short and concise.
 If you are not sure what to answer, simply say "I'm not sure, but I'll do my best to help!".
 The answers should always use informal "you".
 ```
+
+## Ignoring Specific Users
+
+You can configure which users should be ignored by the bot (e.g., other bots like "saaromansbot" or "streamelements") using the IGNORED_USERS environment variable in your `.env` file:
+
+```
+IGNORED_USERS=saaromansbot,streamelements,anotherbot
+```
+
+This list is case-insensitive and comma-separated. If not set, the default is `saaromansbot, streamelements`.
+
+Messages from these users will be ignored by the bot and not processed.
 
 ## Push-to-Talk (PTT)
 

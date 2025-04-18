@@ -21,6 +21,11 @@ class Bot(commands.Bot):
             prefix='!',
             initial_channels=[os.environ['TWITCH_CHANNEL']]
         )
+        ignored_users_env = os.environ.get("IGNORED_USERS")
+        if ignored_users_env:
+            self.IGNORED_USERS = {u.strip().lower() for u in ignored_users_env.split(",") if u.strip()}
+        else:
+            self.IGNORED_USERS = {"saaromansbot", "streamelements"}
         self.greeted_users = set()
         self.ai = AIResponder(
             api_key=os.environ.get('OPENAI_API_KEY', ''),
@@ -168,6 +173,9 @@ class Bot(commands.Bot):
             message: Die empfangene Twitch-Chatnachricht.
         """
         if message.echo:
+            return
+        # Ignore messages from certain users (e.g. bots)
+        if message.author.name.lower() in self.IGNORED_USERS:
             return
         content = message.content.lower()
         if "@nicole" in content:
