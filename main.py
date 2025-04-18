@@ -221,17 +221,20 @@ class Bot(commands.Bot):
             access = self.KI_ACCESS_LEVEL
             is_sub = getattr(message.author, "is_subscriber", False)
             is_follower = True
-            if access == "sub" and not is_sub:
-                await message.channel.send(f"@{message.author.name} KI-Antworten sind nur für Abonnenten verfügbar.")
-                return
-            if access == "follower":
-                is_follower = await self.is_follower(message.author.name)
-                if not is_follower:
-                    await message.channel.send(f"@{message.author.name} KI-Antworten sind nur für Follower verfügbar.")
+            channel_owner = os.environ.get("TWITCH_CHANNEL", "").lower()
+            is_owner = message.author.name.lower() == channel_owner
+            if not is_owner:
+                if access == "sub" and not is_sub:
+                    await message.channel.send(f"@{message.author.name} KI-Antworten sind nur für Abonnenten verfügbar.")
                     return
-            if access not in ("all", "sub", "follower"):
-                await message.channel.send(f"KI access misconfigured. Allowed: all, sub, follower.")
-                return
+                if access == "follower":
+                    is_follower = await self.is_follower(message.author.name)
+                    if not is_follower:
+                        await message.channel.send(f"@{message.author.name} KI-Antworten sind nur für Follower verfügbar.")
+                        return
+                if access not in ("all", "sub", "follower"):
+                    await message.channel.send("KI access misconfigured. Allowed: all, sub, follower.")
+                    return
             prompt = message.content
             ai_reply = self.ai.get_response(prompt)
             max_total_length = 500
@@ -262,8 +265,8 @@ class Bot(commands.Bot):
         if self.connected_channels:
             try:
                 await self.connected_channels[0].send(text)
-            except Exception as e:
-                logging.error(f"Fehler beim Senden der PTT-Nachricht: {e}")
+            except Exception as exc:
+                logging.error("Fehler beim Senden der PTT-Nachricht: %s", exc)
         else:
             logging.warning("Keine verbundenen Kanäle für PTT-Chat-Ausgabe.")
 
@@ -277,9 +280,9 @@ def cleanup_temp_audio_files() -> None:
         for file_path in glob.glob(pattern):
             try:
                 os.remove(file_path)
-                logging.info(f"Removed leftover audio file: {file_path}")
-            except Exception as e:
-                logging.warning(f"Could not remove {file_path}: {e}")
+                logging.info("Removed leftover audio file: %s", file_path)
+            except Exception as exc:
+                logging.warning("Could not remove %s: %s", file_path, exc)
 
 def check_required_env_vars() -> None:
     """Checks for required environment variables and exits if any are missing.
@@ -298,7 +301,7 @@ def check_required_env_vars() -> None:
     missing = [var for var in required_vars if not os.environ.get(var)]
     if missing:
         missing_str = ', '.join(missing)
-        logging.critical(f"Missing required environment variables: {missing_str}. Please set them in your .env file.")
+        logging.critical("Missing required environment variables: %s. Please set them in your .env file.", missing_str)
         raise SystemExit(1)
 
 if __name__ == "__main__":
