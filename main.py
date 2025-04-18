@@ -36,6 +36,7 @@ class Bot(commands.Bot):
         )
         log_level = os.getenv('LOG_LEVEL', 'INFO').upper()
         logging.basicConfig(level=getattr(logging, log_level, logging.INFO))
+        self.KI_ACCESS_LEVEL = os.environ.get("KI_ACCESS_LEVEL", "all").lower()  # 'all', 'sub', 'follower'
 
     async def test_openai_connection(self) -> str:
         """Testet die Verbindung zur OpenAI-API und gibt eine Statusmeldung zurück.
@@ -164,6 +165,54 @@ class Bot(commands.Bot):
         except (requests.RequestException, IOError) as exc:
             logging.error("TTS-Fehler: %s", exc)
 
+    async def is_follower(self, user_name: str) -> bool:
+        """Check if a user is a follower of the channel using the Twitch Helix API.
+
+        Args:
+            user_name (str): The username to check.
+        Returns:
+            bool: True if the user is a follower, False otherwise.
+        """
+        import aiohttp
+        channel = os.environ["TWITCH_CHANNEL"].lower()
+        client_id = os.environ.get("CLIENT_ID")
+        access_token = os.environ.get("TMI_TOKEN")
+        if not client_id or not access_token:
+            logging.warning("CLIENT_ID or TMI_TOKEN missing for follower check.")
+            return False
+        headers = {"Client-ID": client_id, "Authorization": f"Bearer {access_token}"}
+        async with aiohttp.ClientSession() as session:
+            # Get channel user ID
+            logging.debug("Requesting channel user ID for channel: %s", channel)
+            async with session.get(f"https://api.twitch.tv/helix/users?login={channel}", headers=headers) as resp:
+                data = await resp.json()
+                logging.debug("Channel user ID response: %s", data)
+                if not data.get("data"):
+                    logging.warning("No data found for channel user: %s", channel)
+                    return False
+                channel_id = data["data"][0]["id"]
+            # Get user ID
+            logging.debug("Requesting user ID for user: %s", user_name)
+            async with session.get(f"https://api.twitch.tv/helix/users?login={user_name}", headers=headers) as resp:
+                data = await resp.json()
+                logging.debug("User ID response: %s", data)
+                if not data.get("data"):
+                    logging.warning("No data found for user: %s", user_name)
+                    return False
+                user_id = data["data"][0]["id"]
+            # Check if user follows channel
+            url = f"https://api.twitch.tv/helix/users/follows?from_id={user_id}&to_id={channel_id}"
+            logging.debug("Checking follow status: %s", url)
+            async with session.get(url, headers=headers) as resp:
+                data = await resp.json()
+                logging.debug("Follow check response: %s", data)
+                is_follower = data.get("total", 0) > 0
+                if is_follower:
+                    logging.info("User '%s' IS a follower of channel '%s'", user_name, channel)
+                else:
+                    logging.info("User '%s' is NOT a follower of channel '%s'", user_name, channel)
+                return is_follower
+
     async def event_message(self, message) -> None:
         """Reagiert auf Nachrichten mit @Nicole und gibt eine KI-Antwort mit TTS aus.
 
@@ -180,6 +229,26 @@ class Bot(commands.Bot):
             return
         content = message.content.lower()
         if "@nicole" in content:
+            # KI-Zugriffsprüfung
+            access = self.KI_ACCESS_LEVEL
+            is_sub = getattr(message.author, "is_subscriber", False)
+            is_mod = getattr(message.author, "is_mod", False)
+            is_follower = True
+            channel_owner = os.environ.get("TWITCH_CHANNEL", "").lower()
+            is_owner = message.author.name.lower() == channel_owner
+            # Moderatoren und Channel-Besitzer haben immer Zugriff
+            if not (is_owner or is_mod):
+                if access == "sub" and not is_sub:
+                    await message.channel.send(f"@{message.author.name} KI-Antworten sind nur für Abonnenten verfügbar.")
+                    return
+                if access == "follower":
+                    is_follower = await self.is_follower(message.author.name)
+                    if not is_follower:
+                        await message.channel.send(f"@{message.author.name} KI-Antworten sind nur für Follower verfügbar.")
+                        return
+                if access not in ("all", "sub", "follower"):
+                    await message.channel.send("KI access misconfigured. Allowed: all, sub, follower.")
+                    return
             prompt = message.content
             ai_reply = self.ai.get_response(prompt)
             max_total_length = 500
@@ -210,8 +279,8 @@ class Bot(commands.Bot):
         if self.connected_channels:
             try:
                 await self.connected_channels[0].send(text)
-            except Exception as e:
-                logging.error(f"Fehler beim Senden der PTT-Nachricht: {e}")
+            except Exception as exc:
+                logging.error("Fehler beim Senden der PTT-Nachricht: %s", exc)
         else:
             logging.warning("Keine verbundenen Kanäle für PTT-Chat-Ausgabe.")
 
@@ -225,9 +294,9 @@ def cleanup_temp_audio_files() -> None:
         for file_path in glob.glob(pattern):
             try:
                 os.remove(file_path)
-                logging.info(f"Removed leftover audio file: {file_path}")
-            except Exception as e:
-                logging.warning(f"Could not remove {file_path}: {e}")
+                logging.info("Removed leftover audio file: %s", file_path)
+            except Exception as exc:
+                logging.warning("Could not remove %s: %s", file_path, exc)
 
 def check_required_env_vars() -> None:
     """Checks for required environment variables and exits if any are missing.
@@ -246,7 +315,7 @@ def check_required_env_vars() -> None:
     missing = [var for var in required_vars if not os.environ.get(var)]
     if missing:
         missing_str = ', '.join(missing)
-        logging.critical(f"Missing required environment variables: {missing_str}. Please set them in your .env file.")
+        logging.critical("Missing required environment variables: %s. Please set them in your .env file.", missing_str)
         raise SystemExit(1)
 
 if __name__ == "__main__":

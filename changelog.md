@@ -1,5 +1,15 @@
 # Changelog
 
+## 1.4.0 (2025-04-18)
+- Version bump to 1.4.0 in all relevant files.
+- Improved error handling and logging in PTT and main bot logic.
+- PTT: Now outputs OpenAI responses to Twitch chat and uses the same message splitting logic as normal chat responses (max 500 characters, word boundary).
+- PTT integration refactored: PTTRecorder now accepts a callback for chat output, ensuring thread-safe and async message delivery.
+- Codebase: Consistent type hints, improved docstrings, and adherence to PEP 8/PEP 257.
+- Dependency check and cleanup of temporary audio files at startup improved.
+- README updated for new features and configuration options.
+- Security and code quality review performed; recommendations implemented.
+
 ## 1.3.0 (2025-04-18)
 - Push-to-Talk (PTT) now also outputs the OpenAI response in the Twitch chat, not just as audio.
 - PTT chat output uses the same message splitting logic as normal chat responses (max 500 characters, word boundary).
