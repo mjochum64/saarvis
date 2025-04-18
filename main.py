@@ -128,7 +128,7 @@ class Bot(commands.Bot):
                 try:
                     error_json = response.json()
                     error_detail = error_json.get('detail') or error_json.get('message') or str(error_json)
-                except Exception:
+                except ValueError:
                     error_detail = response.text
                 logging.error(
                     "TTS-Fehler (HTTP %s): %s | Detail: %s", response.status_code, http_exc, error_detail
