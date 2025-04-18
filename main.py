@@ -180,26 +180,38 @@ class Bot(commands.Bot):
         if not client_id or not access_token:
             logging.warning("CLIENT_ID or TMI_TOKEN missing for follower check.")
             return False
-        # Get user and channel IDs
         headers = {"Client-ID": client_id, "Authorization": f"Bearer {access_token}"}
         async with aiohttp.ClientSession() as session:
             # Get channel user ID
+            logging.debug("Requesting channel user ID for channel: %s", channel)
             async with session.get(f"https://api.twitch.tv/helix/users?login={channel}", headers=headers) as resp:
                 data = await resp.json()
+                logging.debug("Channel user ID response: %s", data)
                 if not data.get("data"):
+                    logging.warning("No data found for channel user: %s", channel)
                     return False
                 channel_id = data["data"][0]["id"]
             # Get user ID
+            logging.debug("Requesting user ID for user: %s", user_name)
             async with session.get(f"https://api.twitch.tv/helix/users?login={user_name}", headers=headers) as resp:
                 data = await resp.json()
+                logging.debug("User ID response: %s", data)
                 if not data.get("data"):
+                    logging.warning("No data found for user: %s", user_name)
                     return False
                 user_id = data["data"][0]["id"]
             # Check if user follows channel
             url = f"https://api.twitch.tv/helix/users/follows?from_id={user_id}&to_id={channel_id}"
+            logging.debug("Checking follow status: %s", url)
             async with session.get(url, headers=headers) as resp:
                 data = await resp.json()
-                return data.get("total", 0) > 0
+                logging.debug("Follow check response: %s", data)
+                is_follower = data.get("total", 0) > 0
+                if is_follower:
+                    logging.info("User '%s' IS a follower of channel '%s'", user_name, channel)
+                else:
+                    logging.info("User '%s' is NOT a follower of channel '%s'", user_name, channel)
+                return is_follower
 
     async def event_message(self, message) -> None:
         """Reagiert auf Nachrichten mit @Nicole und gibt eine KI-Antwort mit TTS aus.
@@ -220,10 +232,12 @@ class Bot(commands.Bot):
             # KI-Zugriffsprüfung
             access = self.KI_ACCESS_LEVEL
             is_sub = getattr(message.author, "is_subscriber", False)
+            is_mod = getattr(message.author, "is_mod", False)
             is_follower = True
             channel_owner = os.environ.get("TWITCH_CHANNEL", "").lower()
             is_owner = message.author.name.lower() == channel_owner
-            if not is_owner:
+            # Moderatoren und Channel-Besitzer haben immer Zugriff
+            if not (is_owner or is_mod):
                 if access == "sub" and not is_sub:
                     await message.channel.send(f"@{message.author.name} KI-Antworten sind nur für Abonnenten verfügbar.")
                     return
