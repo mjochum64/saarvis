@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.1.1 (2025-04-18)
+- Release version 1.1.1.
+- No code changes; version bump for release management and documentation alignment.
+
 ## 1.1.0 (2025-04-17)
 - Major Release: Push-to-Talk (PTT) is now fully integrated as a background process in the bot.
 - Individual prompts (e.g., from prompt.txt/.env) are now also used for PTT audio.
