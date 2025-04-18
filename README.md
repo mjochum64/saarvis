@@ -1,36 +1,36 @@
-# saarvis – Twitch Chatbot mit OpenAI und ElevenLabs TTS
+# saarvis – Twitch Chatbot with OpenAI and ElevenLabs TTS
 
 **Current version:** 1.1.0
 
 ## Project Description
 
-saarvis is a modern Twitch chatbot based on Python that uses OpenAI for AI-powered responses and ElevenLabs for text-to-speech. Configuration is done via a .env file.
+saarvis is a modern Twitch chatbot written in Python that leverages OpenAI for AI-powered responses and ElevenLabs for text-to-speech (TTS). Configuration is managed via a `.env` file.
 
 ## Features
 
 - Welcomes new users in the Twitch chat
-- AI-powered responses to messages with @Nicole
+- AI-powered responses to messages containing @Nicole
 - Text-to-speech of responses via ElevenLabs (TTS)
 - Flexible configuration of voice and model via environment variables
-- Reliable audio playback via mpg123/mpv
-- Easy adjustment of the OpenAI model and API keys via .env
+- Reliable audio playback using mpg123/mpv
+- Easy adjustment of the OpenAI model and API keys via `.env`
 - Status check of the OpenAI interface at startup
 
-## Hinweis zur Ansprache des Bots
+## Bot Trigger Notice
 
-Ab Version 1.0.1: Der Bot reagiert ausschließlich auf Nachrichten mit @Nicole im Text. Die Verwendung von /Nicole als Trigger ist nicht mehr möglich, da Twitch Nachrichten mit / als fehlerhafte Befehle behandelt.
+Since version 1.0.1: The bot only responds to messages containing @Nicole. Using /Nicole as a trigger is no longer possible, as Twitch treats messages starting with / as invalid commands.
 
 ## Push-to-Talk (PTT) Integration
 
-Ab Version 1.0.2 ist die Push-to-Talk-Funktionalität direkt in den Bot integriert und läuft als Hintergrundprozess. Die Aufnahme wird wie gewohnt über Maus5 getriggert, die Verarbeitung (Transkription, KI-Antwort, TTS) erfolgt direkt im Bot-Prozess. Die Datei `ptt_audio.py` ist nicht mehr erforderlich.
+Since version 1.0.2, push-to-talk functionality is directly integrated into the bot and runs as a background process. Recording is triggered as usual via Mouse5, and processing (transcription, AI response, TTS) happens directly within the bot process. The file `ptt_audio.py` is no longer required.
 
-## Hinweis zur Entfernung von ptt_audio.py
+## Removal of ptt_audio.py
 
-Die Datei `ptt_audio.py` wurde entfernt, da die gesamte Funktionalität jetzt in `ptt.py` und `main.py` enthalten ist.
+The file `ptt_audio.py` has been removed, as all its functionality is now included in `ptt.py` and `main.py`.
 
 ## Installation
 
-For installation, I use the tool [uv](https://docs.astral.sh/uv/) instead of the more commonly expected pip. This makes installation easier and much faster.
+For installation, the [uv](https://docs.astral.sh/uv/) tool is used instead of the more common pip. This makes installation easier and much faster.
 
 1. **Clone the repository**
 
@@ -67,6 +67,6 @@ Start the bot with:
 uv run main.py
 ```
 
-![alt text](start.png)
+![Screenshot: Bot Startup](start.png)
 
 All required modules will be installed on first start.

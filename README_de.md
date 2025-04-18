@@ -1,72 +1,82 @@
-# saarvis – Twitch Chatbot mit OpenAI und ElevenLabs TTS
+# saarvis – Twitch-Chatbot mit OpenAI und ElevenLabs TTS
 
 **Aktuelle Version:** 1.1.0
 
-## Project Description
+## Projektbeschreibung
 
-saarvis is a modern Twitch chatbot based on Python, utilizing OpenAI for AI responses and ElevenLabs for text-to-speech. Configuration is managed via a .env file.
+saarvis ist ein moderner Twitch-Chatbot, geschrieben in Python, der OpenAI für KI-gestützte Antworten und ElevenLabs für Text-to-Speech (TTS) nutzt. Die Konfiguration erfolgt über eine `.env`-Datei.
 
-## Features
+## Funktionen
 
-- Welcomes new users in the Twitch chat
-- AI-powered responses to messages with @Nicole
-- Text-to-speech output of responses via ElevenLabs (TTS)
-- Flexible configuration of voice and model via environment variables
-- Reliable audio playback using mpg123/mpv
-- Easy adjustment of OpenAI model and API keys via .env
-- Status check of the OpenAI API on startup
+- Begrüßt neue Nutzer im Twitch-Chat
+- KI-gestützte Antworten auf Nachrichten mit @Nicole
+- Text-to-Speech der Antworten über ElevenLabs (TTS)
+- Flexible Konfiguration von Stimme und Modell über Umgebungsvariablen
+- Zuverlässige Audiowiedergabe mit mpg123/mpv
+- Einfache Anpassung des OpenAI-Modells und der API-Keys über `.env`
+- Statusprüfung der OpenAI-Schnittstelle beim Start
+
+## Hinweis zur Bot-Ansprache
+
+Seit Version 1.0.1: Der Bot reagiert nur auf Nachrichten, die @Nicole enthalten. Die Verwendung von /Nicole als Trigger ist nicht mehr möglich, da Twitch Nachrichten mit / als ungültige Befehle behandelt.
+
+## Push-to-Talk (PTT) Integration
+
+Seit Version 1.0.2 ist die Push-to-Talk-Funktionalität direkt in den Bot integriert und läuft als Hintergrundprozess. Die Aufnahme wird wie gewohnt über Maus5 ausgelöst, die Verarbeitung (Transkription, KI-Antwort, TTS) erfolgt direkt im Bot-Prozess. Die Datei `ptt_audio.py` wird nicht mehr benötigt.
+
+## Entfernung von ptt_audio.py
+
+Die Datei `ptt_audio.py` wurde entfernt, da die gesamte Funktionalität jetzt in `ptt.py` und `main.py` enthalten ist.
 
 ## Installation
 
-For installation, the [uv](https://docs.astral.sh/uv/) tool is used instead of pip, making the process simpler and much faster.
+Für die Installation wird das Tool [uv](https://docs.astral.sh/uv/) anstelle des üblichen pip verwendet. Dies vereinfacht und beschleunigt die Installation erheblich.
 
-1. **Clone the repository**
+1. **Repository klonen**
 
    ```bash
    git clone https://github.com/mjochum64/saarvis
    cd saarvis
    ```
 
-2. **Create a .env file** (example):
+2. **.env-Datei erstellen** (Beispiel):
 
    ```env
-   TMI_TOKEN=<your_twitch_token>
-   TWITCH_CHANNEL=<your_channel>
-   OPENAI_API_KEY=<your_openai_key>
+   TMI_TOKEN=<dein_twitch_token>
+   TWITCH_CHANNEL=<dein_channel>
+   OPENAI_API_KEY=<dein_openai_key>
    OPENAI_MODEL=gpt-3.5-turbo
-   ELEVENLABS_API_KEY=<your_elevenlabs_key>
-   ELEVENLABS_VOICE_ID=<your_voice_id>
+   ELEVENLABS_API_KEY=<dein_elevenlabs_key>
+   ELEVENLABS_VOICE_ID=<deine_voice_id>
    ELEVENLABS_MODEL_ID=eleven_multilingual_v2
    ```
 
-3. **Create prompt.txt**:
+3. **prompt.txt erstellen**:
 
    ```bash
    cp prompt.txt.example prompt.txt   
    ```
 
-   The provided prompt is just an example and should be adapted to your needs.
+   Der bereitgestellte Prompt ist nur ein Beispiel und sollte an die eigenen Bedürfnisse angepasst werden.
 
-## Usage
+## Nutzung
 
-Start the bot with:
+Starte den Bot mit:
 
 ```bash
 uv run main.py
 ```
 
-On the first run, all required modules will be installed automatically.
+![Screenshot: Bot-Start](start.png)
 
-## System Requirements
+Alle benötigten Module werden beim ersten Start automatisch installiert.
+
+## Systemanforderungen
 
 - Python 3.13
 - [uv](https://docs.astral.sh/uv/)
-- mpg123 or mpv for audio playback
-- [ElevenLabs](https://elevenlabs.io/) account for TTS
-
-## Hinweis zur Ansprache des Bots
-
-Ab Version 1.0.1: Der Bot reagiert ausschließlich auf Nachrichten mit @Nicole im Text. Die Verwendung von /Nicole als Trigger ist nicht mehr möglich, da Twitch Nachrichten mit / als fehlerhafte Befehle behandelt.
+- mpg123 oder mpv für Audiowiedergabe
+- [ElevenLabs](https://elevenlabs.io/) Konto für TTS
 
 ## Hinweis zu langen Texten und Timeout bei TTS
 
@@ -74,19 +84,19 @@ Ab Version 1.0.1: Der Bot reagiert ausschließlich auf Nachrichten mit @Nicole i
 
 ## Tests
 
-Tests are located in the `tests/` directory and can be run with:
+Tests befinden sich im Verzeichnis `tests/` und können mit folgendem Befehl ausgeführt werden:
 
 ```bash
 uv run pytest tests/test_main.py
 ```
 
-## License
+## Lizenz
 
-This project is licensed under the MIT License. See [LICENSE](LICENSE) for details.
+Dieses Projekt ist unter der MIT-Lizenz lizenziert. Siehe [LICENSE](LICENSE) für Details.
 
-## Author
+## Autor
 
 Martin Jochum <mjochum64@gmail.com>
 
 ---
-*Created on 16.04.2025*
+*Erstellt am 16.04.2025*

@@ -1,35 +1,35 @@
 # Changelog
 
 ## 1.1.0 (2025-04-17)
-- Major Release: Push-to-Talk (PTT) ist jetzt vollständig als Hintergrundprozess in den Bot integriert.
-- Individuelle Prompts (z.B. aus prompt.txt/.env) werden jetzt auch für PTT-Audio genutzt.
-- Die Datei ptt_audio.py wurde entfernt, die gesamte Logik befindet sich nun in ptt.py und wird von main.py aus gestartet.
-- Diverse interne Verbesserungen und Refactoring.
+- Major Release: Push-to-Talk (PTT) is now fully integrated as a background process in the bot.
+- Individual prompts (e.g., from prompt.txt/.env) are now also used for PTT audio.
+- The file ptt_audio.py has been removed; all logic is now in ptt.py and started from main.py.
+- Various internal improvements and refactoring.
 
 ## 1.0.2 (2025-04-17)
-- Push-to-Talk (PTT) ist jetzt vollständig in den Bot integriert und läuft als Hintergrundprozess.
-- Die Datei ptt_audio.py wurde entfernt, die gesamte Logik befindet sich nun in ptt.py und wird von main.py aus gestartet.
-- Sprachaufnahmen werden weiterhin per Maus5 getriggert, aber direkt im Kontext des Bots verarbeitet.
+- Push-to-Talk (PTT) is now fully integrated into the bot and runs as a background process.
+- The file ptt_audio.py has been removed; all logic is now in ptt.py and started from main.py.
+- Voice recordings are still triggered via Mouse5, but are now processed directly in the bot context.
 
 ## 1.0.1 (2025-04-17)
-- Der Bot reagiert jetzt ausschließlich auf Nachrichten mit @Nicole. Die Unterstützung für /Nicole als Trigger wurde entfernt, da Twitch Nachrichten mit / als fehlerhafte Befehle behandelt.
+- The bot now only responds to messages containing @Nicole. Support for /Nicole as a trigger has been removed, as Twitch treats messages starting with / as invalid commands.
 
 ## 1.0.0 (2025-04-17)
-- **Release 1.0.0:** Siehe nachfolgende Einträge für alle enthaltenen Features und Bugfixes.
+- **Release 1.0.0:** See subsequent entries for all included features and bugfixes.
 
 ## 2025-04-17
-- Die Anzahl der generierten Token ist jetzt einstellbar, default sind nun 500.
-- Lange Antworten der KI-Schnittstelle werden nun aufgeteilt.
-- Antworten werden jetzt bei der Ausgabe im Chat nur noch an Wortgrenzen getrennt, nicht mehr mitten im Wort (event_message in main.py angepasst, Hilfsfunktion split_text_on_word_boundary hinzugefügt).
-- Fehlerbehebung: Die Länge des ersten Antwort-Blocks (inkl. Prefix) überschreitet nicht mehr das 500-Zeichen-Limit von TwitchIO. Die Blockaufteilung wurde entsprechend angepasst.
+- The number of generated tokens is now configurable; the default is now 500.
+- Long responses from the AI interface are now split.
+- Responses are now only split at word boundaries when outputting to chat, not in the middle of words (event_message in main.py adjusted, helper function split_text_on_word_boundary added).
+- Bugfix: The length of the first response block (including prefix) no longer exceeds the 500-character limit of TwitchIO. Block splitting has been adjusted accordingly.
 
-## 2025-04-17 (Timeout & TTS-Verbesserungen)
-- Timeout für ElevenLabs-TTS-API in main.py von 15s auf 60s erhöht, um längere Texte zu unterstützen.
-- Explizite Fehlerbehandlung für Timeout ergänzt: Nutzer erhalten nun einen klaren Hinweis, wenn das Timeout überschritten wird.
-- Docstring der speak_text-Methode nach Google-Style erweitert und Hinweise zu Textlänge/Timeout ergänzt.
-- Hinweise zu langen Texten und Timeout-Verhalten in README.md und README_de.md ergänzt.
+## 2025-04-17 (Timeout & TTS Improvements)
+- Timeout for ElevenLabs TTS API in main.py increased from 15s to 60s to support longer texts.
+- Explicit error handling for timeouts added: users now receive a clear message if the timeout is exceeded.
+- Docstring of the speak_text method expanded to Google style and notes on text length/timeout added.
+- Notes on long texts and timeout behavior added to README.md and README_de.md.
 
 ## 2025-04-16
-- Bot reagiert jetzt auf Nachrichten mit '@Nicole' im Chat und antwortet entsprechend.
-- Neuer Testfall für die Nicole-Erkennung in test_main.py hinzugefügt.
-- Changelog-Datei erstellt und gepflegt.
+- Bot now responds to messages with '@Nicole' in chat and replies accordingly.
+- New test case for Nicole detection added in test_main.py.
+- Changelog file created and maintained.
