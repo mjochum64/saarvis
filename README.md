@@ -65,7 +65,7 @@ ELEVENLABS_MODEL_ID=eleven_multilingual_v2
 
 You can customize the bot's personality and behavior by editing `prompt.txt`. For example:
 
-```
+```prompt
 You are a helpful, friendly chatbot for Twitch.
 Please always reply in the language you are addressed in.
 Your answers should be short and concise.
