@@ -10,6 +10,7 @@ from typing import List
 import threading
 from ptt import ptt_listener_background
 import glob
+import asyncio
 
 class Bot(commands.Bot):
     """Twitch-Chatbot mit OpenAI- und ElevenLabs-TTS-Integration."""
@@ -199,6 +200,21 @@ class Bot(commands.Bot):
             return
         await self.handle_commands(message)
 
+    async def send_ptt_message(self, text: str) -> None:
+        """Sendet einen Textblock aus der PTT-Funktion in den Twitch-Chat.
+
+        Args:
+            text (str): Der zu sendende Textblock.
+        """
+        # Sende in den ersten initial_channel
+        if self.connected_channels:
+            try:
+                await self.connected_channels[0].send(text)
+            except Exception as e:
+                logging.error(f"Fehler beim Senden der PTT-Nachricht: {e}")
+        else:
+            logging.warning("Keine verbundenen Kanäle für PTT-Chat-Ausgabe.")
+
 def cleanup_temp_audio_files() -> None:
     """Removes leftover temporary audio files (*.mp3, aufnahme.wav) from the working directory.
 
@@ -237,7 +253,20 @@ if __name__ == "__main__":
     dotenv.load_dotenv()
     cleanup_temp_audio_files()
     check_required_env_vars()
-    # PTT-Listener im Hintergrund starten
-    threading.Thread(target=ptt_listener_background, daemon=True).start()
     bot = Bot()
+    # PTT-Listener im Hintergrund starten, Chat-Callback übergeben
+    def ptt_chat_callback(text: str):
+        # Thread-sicheres Aufrufen der async-Methode aus dem PTT-Thread
+        try:
+            loop = asyncio.get_event_loop()
+        except RuntimeError:
+            loop = None
+        if loop and loop.is_running():
+            asyncio.run_coroutine_threadsafe(bot.send_ptt_message(text), loop)
+        else:
+            # Fallback: neuen Loop starten (sollte im Normalfall nicht nötig sein)
+            new_loop = asyncio.new_event_loop()
+            asyncio.set_event_loop(new_loop)
+            new_loop.run_until_complete(bot.send_ptt_message(text))
+    threading.Thread(target=ptt_listener_background, args=(ptt_chat_callback,), daemon=True).start()
     bot.run()
