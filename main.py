@@ -36,6 +36,7 @@ class Bot(commands.Bot):
         )
         log_level = os.getenv('LOG_LEVEL', 'INFO').upper()
         logging.basicConfig(level=getattr(logging, log_level, logging.INFO))
+        self.KI_ACCESS_LEVEL = os.environ.get("KI_ACCESS_LEVEL", "all").lower()  # 'all', 'sub', 'follower'
 
     async def test_openai_connection(self) -> str:
         """Testet die Verbindung zur OpenAI-API und gibt eine Statusmeldung zurück.
@@ -164,6 +165,42 @@ class Bot(commands.Bot):
         except (requests.RequestException, IOError) as exc:
             logging.error("TTS-Fehler: %s", exc)
 
+    async def is_follower(self, user_name: str) -> bool:
+        """Check if a user is a follower of the channel using the Twitch Helix API.
+
+        Args:
+            user_name (str): The username to check.
+        Returns:
+            bool: True if the user is a follower, False otherwise.
+        """
+        import aiohttp
+        channel = os.environ["TWITCH_CHANNEL"].lower()
+        client_id = os.environ.get("CLIENT_ID")
+        access_token = os.environ.get("TMI_TOKEN")
+        if not client_id or not access_token:
+            logging.warning("CLIENT_ID or TMI_TOKEN missing for follower check.")
+            return False
+        # Get user and channel IDs
+        headers = {"Client-ID": client_id, "Authorization": f"Bearer {access_token}"}
+        async with aiohttp.ClientSession() as session:
+            # Get channel user ID
+            async with session.get(f"https://api.twitch.tv/helix/users?login={channel}", headers=headers) as resp:
+                data = await resp.json()
+                if not data.get("data"):
+                    return False
+                channel_id = data["data"][0]["id"]
+            # Get user ID
+            async with session.get(f"https://api.twitch.tv/helix/users?login={user_name}", headers=headers) as resp:
+                data = await resp.json()
+                if not data.get("data"):
+                    return False
+                user_id = data["data"][0]["id"]
+            # Check if user follows channel
+            url = f"https://api.twitch.tv/helix/users/follows?from_id={user_id}&to_id={channel_id}"
+            async with session.get(url, headers=headers) as resp:
+                data = await resp.json()
+                return data.get("total", 0) > 0
+
     async def event_message(self, message) -> None:
         """Reagiert auf Nachrichten mit @Nicole und gibt eine KI-Antwort mit TTS aus.
 
@@ -180,6 +217,21 @@ class Bot(commands.Bot):
             return
         content = message.content.lower()
         if "@nicole" in content:
+            # KI-Zugriffsprüfung
+            access = self.KI_ACCESS_LEVEL
+            is_sub = getattr(message.author, "is_subscriber", False)
+            is_follower = True
+            if access == "sub" and not is_sub:
+                await message.channel.send(f"@{message.author.name} KI-Antworten sind nur für Abonnenten verfügbar.")
+                return
+            if access == "follower":
+                is_follower = await self.is_follower(message.author.name)
+                if not is_follower:
+                    await message.channel.send(f"@{message.author.name} KI-Antworten sind nur für Follower verfügbar.")
+                    return
+            if access not in ("all", "sub", "follower"):
+                await message.channel.send(f"KI access misconfigured. Allowed: all, sub, follower.")
+                return
             prompt = message.content
             ai_reply = self.ai.get_response(prompt)
             max_total_length = 500
