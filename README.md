@@ -79,7 +79,7 @@ The answers should always use informal "you".
 
 You can configure which users should be ignored by the bot (e.g., other bots like "saaromansbot" or "streamelements") using the IGNORED_USERS environment variable in your `.env` file:
 
-```
+```env
 IGNORED_USERS=saaromansbot,streamelements,anotherbot
 ```
 
