@@ -9,6 +9,7 @@ import subprocess
 from typing import List
 import threading
 from ptt import ptt_listener_background
+import glob
 
 class Bot(commands.Bot):
     """Twitch-Chatbot mit OpenAI- und ElevenLabs-TTS-Integration."""
@@ -190,8 +191,44 @@ class Bot(commands.Bot):
             return
         await self.handle_commands(message)
 
+def cleanup_temp_audio_files() -> None:
+    """Removes leftover temporary audio files (*.mp3, aufnahme.wav) from the working directory.
+
+    This should be called at program startup to prevent disk space issues from old files.
+    """
+    patterns = ["*.mp3", "aufnahme.wav"]
+    for pattern in patterns:
+        for file_path in glob.glob(pattern):
+            try:
+                os.remove(file_path)
+                logging.info(f"Removed leftover audio file: {file_path}")
+            except Exception as e:
+                logging.warning(f"Could not remove {file_path}: {e}")
+
+def check_required_env_vars() -> None:
+    """Checks for required environment variables and exits if any are missing.
+
+    Raises:
+        SystemExit: If a required environment variable is missing.
+    """
+    required_vars = [
+        'TMI_TOKEN',
+        'TWITCH_CHANNEL',
+        'OPENAI_API_KEY',
+        'ELEVENLABS_API_KEY',
+        'ELEVENLABS_VOICE_ID',
+        'ELEVENLABS_MODEL_ID',
+    ]
+    missing = [var for var in required_vars if not os.environ.get(var)]
+    if missing:
+        missing_str = ', '.join(missing)
+        logging.critical(f"Missing required environment variables: {missing_str}. Please set them in your .env file.")
+        raise SystemExit(1)
+
 if __name__ == "__main__":
     dotenv.load_dotenv()
+    cleanup_temp_audio_files()
+    check_required_env_vars()
     # PTT-Listener im Hintergrund starten
     threading.Thread(target=ptt_listener_background, daemon=True).start()
     bot = Bot()

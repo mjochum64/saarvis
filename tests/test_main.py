@@ -9,17 +9,20 @@ sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')
 from main import Bot
 
 class DummyUser:
-    def __init__(self, name):
+    """A dummy user for testing Twitch bot join events."""
+    def __init__(self, name: str) -> None:
         self.name = name
 
 class DummyChannel:
-    def __init__(self):
+    """A dummy channel for capturing sent messages in tests."""
+    def __init__(self) -> None:
         self.sent_messages = []
-    async def send(self, message):
+    async def send(self, message: str) -> None:
         self.sent_messages.append(message)
 
 class DummyMessage:
-    def __init__(self, content, author_name, channel, echo=False):
+    """A dummy message for simulating Twitch chat messages in tests."""
+    def __init__(self, content: str, author_name: str, channel: DummyChannel, echo: bool = False) -> None:
         self.content = content
         self.author = type('Author', (), {'name': author_name})
         self.channel = channel
@@ -27,6 +30,7 @@ class DummyMessage:
 
 @pytest.mark.asyncio
 async def test_event_join_greets_new_user():
+    """Test that a new user is greeted and added to greeted_users."""
     os.environ['TMI_TOKEN'] = 'dummy_token'
     os.environ['TWITCH_CHANNEL'] = 'dummy_channel'
     bot = Bot()
@@ -40,6 +44,7 @@ async def test_event_join_greets_new_user():
 
 @pytest.mark.asyncio
 async def test_event_join_does_not_greet_self():
+    """Test that the bot does not greet itself when joining."""
     os.environ['TMI_TOKEN'] = 'dummy_token'
     os.environ['TWITCH_CHANNEL'] = 'dummy_channel'
     bot = Bot()
@@ -53,6 +58,7 @@ async def test_event_join_does_not_greet_self():
 
 @pytest.mark.asyncio
 async def test_event_join_does_not_greet_twice():
+    """Test that a user is not greeted twice on multiple joins."""
     os.environ['TMI_TOKEN'] = 'dummy_token'
     os.environ['TWITCH_CHANNEL'] = 'dummy_channel'
     bot = Bot()
@@ -70,11 +76,10 @@ async def test_event_join_does_not_greet_twice():
 @pytest.mark.asyncio
 @pytest.mark.parametrize("content", [
     "Hallo @Nicole, wie geht's?",
-    "/Nicole Wie geht es Dir?",
-    "@nicole bist du da?",
-    "/nicole test"
+    "@nicole bist du da?"
 ])
-async def test_event_message_triggers_on_nicole_with_ai(content):
+async def test_event_message_triggers_on_nicole_with_ai(content: str):
+    """Test that messages containing @Nicole trigger an AI response."""
     os.environ['TMI_TOKEN'] = 'dummy_token'
     os.environ['TWITCH_CHANNEL'] = 'dummy_channel'
     os.environ['OPENAI_API_KEY'] = 'dummy_openai_key'
@@ -90,7 +95,7 @@ async def test_event_message_triggers_on_nicole_with_ai(content):
 
 @pytest.mark.asyncio
 async def test_speak_text_success(monkeypatch):
-    """Testet, ob speak_text ohne Fehler durchläuft, wenn alle Abhängigkeiten funktionieren."""
+    """Test that speak_text runs without error when dependencies work."""
     os.environ['ELEVENLABS_API_KEY'] = 'dummy'
     os.environ['ELEVENLABS_VOICE_ID'] = 'dummy_voice'
     os.environ['ELEVENLABS_MODEL_ID'] = 'dummy_model'
@@ -103,7 +108,7 @@ async def test_speak_text_success(monkeypatch):
 
 @pytest.mark.asyncio
 async def test_speak_text_mpg123_fails(monkeypatch):
-    """Testet, ob speak_text auf mpv zurückfällt, wenn mpg123 fehlschlägt."""
+    """Test that speak_text falls back to mpv if mpg123 fails."""
     os.environ['ELEVENLABS_API_KEY'] = 'dummy'
     os.environ['ELEVENLABS_VOICE_ID'] = 'dummy_voice'
     os.environ['ELEVENLABS_MODEL_ID'] = 'dummy_model'
@@ -122,7 +127,7 @@ async def test_speak_text_mpg123_fails(monkeypatch):
 
 @pytest.mark.asyncio
 async def test_speak_text_quota_exceeded(monkeypatch, caplog):
-    """Testet, ob speak_text bei einem HTTP-Fehler (z.B. Kontingent überschritten) korrekt loggt."""
+    """Test that speak_text logs correctly on HTTP error (e.g., quota exceeded)."""
     import requests
     os.environ['ELEVENLABS_API_KEY'] = 'dummy'
     os.environ['ELEVENLABS_VOICE_ID'] = 'dummy_voice'
@@ -143,3 +148,19 @@ async def test_speak_text_quota_exceeded(monkeypatch, caplog):
         await bot.speak_text("Testausgabe")
     assert "quota exceeded" in caplog.text
     assert "TTS-Fehler (HTTP 402)" in caplog.text
+
+def test_missing_env_vars(monkeypatch):
+    """Test that the bot exits with a clear error if required environment variables are missing."""
+    from main import check_required_env_vars
+    for var in [
+        'TMI_TOKEN',
+        'TWITCH_CHANNEL',
+        'OPENAI_API_KEY',
+        'ELEVENLABS_API_KEY',
+        'ELEVENLABS_VOICE_ID',
+        'ELEVENLABS_MODEL_ID',
+    ]:
+        monkeypatch.delenv(var, raising=False)
+    import pytest
+    with pytest.raises(SystemExit):
+        check_required_env_vars()

@@ -1,5 +1,15 @@
 # Changelog
 
+## 1.2.0 (2025-04-18)
+- Consistently added type hints in ptt.py.
+- Replaced print statements with logging in ptt.py, unified logging levels and docstrings.
+- Improved error handling in ptt.py and added logging for error cases.
+- Added dependency check for critical environment variables in main.py.
+- Integrated cleanup mechanism for temporary audio files (mp3, aufnahme.wav) at startup in main.py.
+- Extended README.md with sections on dependency check, prompt.txt customization, and PTT usage.
+- Tests: Added docstrings and type annotations, included a test for missing environment variables, removed invalid test cases.
+- Performed code and security review and implemented recommendations.
+
 ## 1.1.1 (2025-04-18)
 - Release version 1.1.1.
 - No code changes; version bump for release management and documentation alignment.

@@ -8,22 +8,36 @@ import requests
 import tempfile
 import os
 from ai_responder import AIResponder
+from typing import Any, List
+import logging
+
+logging.basicConfig(level=logging.INFO)
 
 class PTTRecorder:
-    def __init__(self):
-        self.recording = False
-        self.frames = []
-        self.stream = None
-        self.lock = threading.Lock()
+    """Handles Push-to-Talk recording, transcription, AI response, and TTS playback.
 
-    def _callback(self, indata, frames, time_info, status):
+    Usage:
+        recorder = PTTRecorder()
+        recorder.start_recording()
+        # ...
+        recorder.stop_recording()
+    """
+    def __init__(self) -> None:
+        self.recording: bool = False
+        self.frames: list[np.ndarray] = []
+        self.stream: Any = None
+        self.lock: threading.Lock = threading.Lock()
+
+    def _callback(self, indata: np.ndarray, frames: int, time_info: Any, status: Any) -> None:
+        """Callback for sounddevice InputStream. Appends audio frames if recording."""
         if self.recording:
             with self.lock:
                 self.frames.append(indata.copy())
 
-    def start_recording(self):
+    def start_recording(self) -> None:
+        """Start audio recording using sounddevice InputStream."""
         if not self.recording:
-            print("Aufnahme gestartet...")
+            logging.info("Aufnahme gestartet...")
             self.frames = []
             self.stream = sd.InputStream(
                 samplerate=16000,
@@ -33,28 +47,38 @@ class PTTRecorder:
             self.stream.start()
             self.recording = True
 
-    def stop_recording(self, filename="aufnahme.wav"):
+    def stop_recording(self, filename: str = "aufnahme.wav") -> None:
+        """Stop recording, save audio to file, and process transcription and AI response.
+
+        Args:
+            filename (str): Path to save the recorded WAV file.
+        """
         if self.recording:
-            print(f"Aufnahme gestoppt. Speichere nach {filename}")
+            logging.info(f"Aufnahme gestoppt. Speichere nach {filename}")
             self.recording = False
             self.stream.stop()
             self.stream.close()
             audio = np.concatenate(self.frames, axis=0)
             wav.write(filename, 16000, audio)
-            print(f"Datei gespeichert: {filename}")
+            logging.info(f"Datei gespeichert: {filename}")
             self.handle_transcription_and_ai(filename)
 
-    def handle_transcription_and_ai(self, filename):
+    def handle_transcription_and_ai(self, filename: str) -> None:
+        """Transcribes audio file, gets AI response, and plays TTS output.
+
+        Args:
+            filename (str): Path to the WAV file to transcribe.
+        """
         try:
             from openai import OpenAI
         except ImportError:
-            print("Fehlende Abhängigkeit: openai. Bitte installiere mit 'pip install openai'.")
+            logging.error("Fehlende Abhängigkeit: openai. Bitte installiere mit 'pip install openai'.")
             return
         api_key = os.environ.get("OPENAI_API_KEY")
         model = os.environ.get("OPENAI_MODEL", "gpt-3.5-turbo")
         system_prompt = os.environ.get('OPENAI_SYSTEM_PROMPT', 'Du bist ein hilfreicher, freundlicher Chatbot für Twitch.').replace('\\n', '\n')
         system_prompt_file = os.environ.get('OPENAI_SYSTEM_PROMPT_FILE')
-        print("Transkribiere Audio mit Whisper...")
+        logging.info("Transkribiere Audio mit Whisper...")
         client = OpenAI(api_key=api_key)
         with open(filename, "rb") as audio_file:
             try:
@@ -64,10 +88,10 @@ class PTTRecorder:
                     response_format="text"
                 )
             except Exception as e:
-                print(f"Fehler bei der Transkription: {e}")
+                logging.error(f"Fehler bei der Transkription: {e}")
                 return
-        print(f"Transkript: {transcript}")
-        print("Sende an KI...")
+        logging.info(f"Transkript: {transcript}")
+        logging.info("Sende an KI...")
         ai = AIResponder(
             api_key=api_key,
             model=model,
@@ -77,19 +101,28 @@ class PTTRecorder:
         try:
             response = ai.get_response(transcript)
         except Exception as e:
-            print(f"Fehler bei der KI-Anfrage: {e}")
+            logging.error(f"Fehler bei der KI-Anfrage: {e}")
             return
-        print("KI-Antwort:")
+        logging.info("KI-Antwort erhalten.")
         max_total_length = 500
         blocks = self.split_text_on_word_boundary(response, max_total_length)
         for block in blocks:
-            print(block)
+            logging.debug(f"TTS-Block: {block}")
             self.speak_text(block)
 
     @staticmethod
-    def split_text_on_word_boundary(text: str, max_length: int):
+    def split_text_on_word_boundary(text: str, max_length: int) -> List[str]:
+        """Splits text into blocks of up to max_length characters, breaking only at word boundaries.
+
+        Args:
+            text (str): The text to split.
+            max_length (int): Maximum length of each block.
+
+        Returns:
+            List[str]: List of text blocks, each not exceeding max_length and not splitting words.
+        """
         words = text.split()
-        blocks = []
+        blocks: List[str] = []
         current_block = ''
         for word in words:
             if current_block:
@@ -108,7 +141,12 @@ class PTTRecorder:
             blocks.append(current_block)
         return blocks
 
-    def speak_text(self, text: str):
+    def speak_text(self, text: str) -> None:
+        """Converts text to speech using the ElevenLabs API and plays the resulting audio file.
+
+        Args:
+            text (str): The text to be spoken.
+        """
         api_key = os.environ.get('ELEVENLABS_API_KEY', 'PLACEHOLDER_API_KEY')
         voice_id = os.environ.get('ELEVENLABS_VOICE_ID', 'tKmESGVo91DcC5kFPRS6')
         model_id = os.environ.get('ELEVENLABS_MODEL_ID', 'eleven_multilingual_v2')
@@ -135,18 +173,19 @@ class PTTRecorder:
                     try:
                         subprocess.run(["mpv", "--quiet", tmp_file.name], check=True)
                     except Exception as e:
-                        print(f"Audioausgabe fehlgeschlagen: {e}")
+                        logging.error(f"Audioausgabe fehlgeschlagen: {e}")
                 finally:
                     try:
                         os.remove(tmp_file.name)
-                    except Exception:
-                        pass
+                    except Exception as e:
+                        logging.warning(f"Konnte TTS-Audiodatei nicht löschen: {e}")
         except Exception as exc:
-            print(f"TTS-Fehler: {exc}")
+            logging.error(f"TTS-Fehler: {exc}")
 
-def ptt_listener_background():
+def ptt_listener_background() -> mouse.Listener:
+    """Starts a background listener for Push-to-Talk (Mouse5) and returns the listener object."""
     recorder = PTTRecorder()
-    def on_click(x, y, button, pressed):
+    def on_click(x: float, y: float, button: Any, pressed: bool) -> None:
         SUPPORTED_BUTTONS = (mouse.Button.button9,)
         if button in SUPPORTED_BUTTONS:
             if pressed:
@@ -155,5 +194,5 @@ def ptt_listener_background():
                 recorder.stop_recording()
     listener = mouse.Listener(on_click=on_click)
     listener.start()
-    print("PTT-Listener im Hintergrund gestartet (Maus5 für Aufnahme)")
+    logging.info("PTT-Listener im Hintergrund gestartet (Maus5 für Aufnahme)")
     return listener

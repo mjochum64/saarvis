@@ -1,6 +1,6 @@
 # saarvis – Twitch Chatbot with OpenAI and ElevenLabs TTS
 
-**Current version:** 1.1.0
+**Current version:** 1.2.0
 
 ## Description
 
@@ -47,6 +47,39 @@ For installation, the [uv](https://docs.astral.sh/uv/) tool is used instead of t
    ```
 
    The content of the provided prompt is just an example and should be adapted to your own needs.
+
+## Dependency Check
+
+On startup, saarvis checks for all required environment variables. If any are missing, the bot will exit with a clear error message. Make sure your `.env` file contains at least the following:
+
+```
+TMI_TOKEN=<your_twitch_token>
+TWITCH_CHANNEL=<your_channel>
+OPENAI_API_KEY=<your_openai_key>
+ELEVENLABS_API_KEY=<your_elevenlabs_key>
+ELEVENLABS_VOICE_ID=<your_voice_id>
+ELEVENLABS_MODEL_ID=eleven_multilingual_v2
+```
+
+## Customizing the Prompt
+
+You can customize the bot's personality and behavior by editing `prompt.txt`. For example:
+
+```
+You are a helpful, friendly chatbot for Twitch.
+Please always reply in the language you are addressed in.
+Your answers should be short and concise.
+If you are not sure what to answer, simply say "I'm not sure, but I'll do my best to help!".
+The answers should always use informal "you".
+```
+
+## Push-to-Talk (PTT)
+
+saarvis supports Push-to-Talk (PTT) for voice input. By default, recording is triggered by Mouse5 (button9). The audio is transcribed using OpenAI Whisper, sent to the AI for a response, and the answer is played back using ElevenLabs TTS.
+
+- To use PTT, simply press Mouse5 while the bot is running.
+- Make sure your microphone is set up and accessible.
+- All required dependencies for PTT are installed automatically on first run.
 
 ## Usage
 
