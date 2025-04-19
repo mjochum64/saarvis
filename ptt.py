@@ -3,14 +3,12 @@ import os
 from typing import Any, List, Callable, Optional
 import tempfile
 import logging
+import queue
 from pynput import mouse
 import sounddevice as sd
 import numpy as np
 import scipy.io.wavfile as wav
 import requests
-from ai_responder import AIResponder
-import asyncio
-import queue
 
 logging.basicConfig(level=logging.INFO)
 
@@ -35,7 +33,7 @@ class PTTRecorder:
         if context_size is None:
             try:
                 context_size = int(os.environ.get("PTT_CONTEXT_SIZE", 5))
-            except Exception:
+            except ValueError:
                 context_size = 5
         self.context_memory: list[str] = []
         self.context_size = context_size
@@ -61,7 +59,7 @@ class PTTRecorder:
             if self.send_chat_callback:
                 try:
                     self.send_chat_callback(full_prompt)
-                except Exception as exc:
+                except (ValueError, RuntimeError) as exc:
                     logging.error("Fehler beim Senden in die zentrale Bot-Logik: %s", exc)
             self.transcript_queue.task_done()
 
@@ -112,9 +110,6 @@ class PTTRecorder:
             logging.error("Fehlende Abhängigkeit: openai. Bitte installiere mit 'pip install openai'.")
             return
         api_key = os.environ.get("OPENAI_API_KEY")
-        model = os.environ.get("OPENAI_MODEL", "gpt-3.5-turbo")
-        system_prompt = os.environ.get('OPENAI_SYSTEM_PROMPT', 'Du bist ein hilfreicher, freundlicher Chatbot für Twitch.').replace('\\n', '\n')
-        system_prompt_file = os.environ.get('OPENAI_SYSTEM_PROMPT_FILE')
         logging.info("Transkribiere Audio mit Whisper...")
         client = OpenAI(api_key=api_key)
         with open(filename, "rb") as audio_file:
@@ -200,7 +195,7 @@ class PTTRecorder:
                         os.remove(tmp_file.name)
                     except Exception as exc3:
                         logging.warning("Konnte TTS-Audiodatei nicht löschen: %s", exc3)
-        except Exception as exc:
+        except (requests.exceptions.RequestException, subprocess.SubprocessError) as exc:
             logging.error("TTS-Fehler: %s", exc)
 
 def ptt_listener_background(send_chat_callback: Optional[Callable[[str], None]] = None) -> mouse.Listener:
