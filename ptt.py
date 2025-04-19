@@ -185,10 +185,10 @@ class PTTRecorder:
                 try:
                     import subprocess
                     subprocess.run(["mpg123", "-q", tmp_file.name], check=True)
-                except Exception as exc:
+                except FileNotFoundError:
                     try:
                         subprocess.run(["mpv", "--quiet", tmp_file.name], check=True)
-                    except Exception as exc2:
+                    except FileNotFoundError as exc2:
                         logging.error("Audioausgabe fehlgeschlagen: %s", exc2)
                 finally:
                     try:
