@@ -1,5 +1,8 @@
 # Changelog
 
+## 1.5.1 (2025-04-19)
+- Fix: use the user context only as background knowledge. Only ever answer the last question
+
 ## 1.5.0 (2025-04-19)
 - Version bump to 1.4.0 in all relevant files.
 - Cache function added for all requests.
