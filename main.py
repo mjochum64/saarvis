@@ -213,6 +213,36 @@ class Bot(commands.Bot):
                     logging.info("User '%s' is NOT a follower of channel '%s'", user_name, channel)
                 return is_follower
 
+    async def process_user_message(self, text: str, user: str = None, channel=None) -> None:
+        """Verarbeitet eine Nutzereingabe (aus Chat oder PTT):
+        - Holt eine KI-Antwort
+        - Splittet die Antwort
+        - Gibt sie im Chat aus (mit Prefix, falls user & channel gesetzt)
+        - Gibt sie per TTS aus
+
+        Args:
+            text (str): Die Nutzereingabe (Text).
+            user (str, optional): Username für Chat-Prefix. Falls None, keine Chat-Ausgabe.
+            channel: Channel-Objekt für Chat-Ausgabe. Falls None, keine Chat-Ausgabe.
+        """
+        ai_reply = self.ai.get_response(text)
+        max_total_length = 500
+        prefix = f"@{user} " if user else ""
+        first_block_max = max_total_length - len(prefix)
+        blocks = self.split_text_on_word_boundary(ai_reply, first_block_max)
+        # Chat-Ausgabe
+        if user and channel:
+            if blocks:
+                first_block = blocks[0]
+                await channel.send(f"{prefix}{first_block}")
+                rest = ' '.join(blocks[1:])
+                if rest:
+                    rest_blocks = self.split_text_on_word_boundary(rest, max_total_length)
+                    for block in rest_blocks:
+                        await channel.send(block)
+        # TTS-Ausgabe
+        await self.speak_text(ai_reply)
+
     async def event_message(self, message) -> None:
         """Reagiert auf Nachrichten mit @Nicole und gibt eine KI-Antwort mit TTS aus.
 
@@ -224,19 +254,16 @@ class Bot(commands.Bot):
         """
         if message.echo:
             return
-        # Ignore messages from certain users (e.g. bots)
         if message.author.name.lower() in self.IGNORED_USERS:
             return
         content = message.content.lower()
         if "@nicole" in content:
-            # KI-Zugriffsprüfung
             access = self.KI_ACCESS_LEVEL
             is_sub = getattr(message.author, "is_subscriber", False)
             is_mod = getattr(message.author, "is_mod", False)
             is_follower = True
             channel_owner = os.environ.get("TWITCH_CHANNEL", "").lower()
             is_owner = message.author.name.lower() == channel_owner
-            # Moderatoren und Channel-Besitzer haben immer Zugriff
             if not (is_owner or is_mod):
                 if access == "sub" and not is_sub:
                     await message.channel.send(f"@{message.author.name} KI-Antworten sind nur für Abonnenten verfügbar.")
@@ -249,40 +276,13 @@ class Bot(commands.Bot):
                 if access not in ("all", "sub", "follower"):
                     await message.channel.send("KI access misconfigured. Allowed: all, sub, follower.")
                     return
-            prompt = message.content
-            ai_reply = self.ai.get_response(prompt)
-            max_total_length = 500
-            prefix = f"@{message.author.name} "
-            # Ersten Block so splitten, dass prefix+block <= 500
-            first_block_max = max_total_length - len(prefix)
-            blocks = self.split_text_on_word_boundary(ai_reply, first_block_max)
-            if blocks:
-                first_block = blocks[0]
-                await message.channel.send(f"{prefix}{first_block}")
-                # Restliche Blöcke ggf. weiter splitten (ohne Prefix, max 500)
-                rest = ' '.join(blocks[1:])
-                if rest:
-                    rest_blocks = self.split_text_on_word_boundary(rest, max_total_length)
-                    for block in rest_blocks:
-                        await message.channel.send(block)
-            await self.speak_text(ai_reply)
+            await self.process_user_message(message.content, user=message.author.name, channel=message.channel)
             return
         await self.handle_commands(message)
 
     async def send_ptt_message(self, text: str) -> None:
-        """Sendet einen Textblock aus der PTT-Funktion in den Twitch-Chat.
-
-        Args:
-            text (str): Der zu sendende Textblock.
-        """
-        # Sende in den ersten initial_channel
-        if self.connected_channels:
-            try:
-                await self.connected_channels[0].send(text)
-            except Exception as exc:
-                logging.error("Fehler beim Senden der PTT-Nachricht: %s", exc)
-        else:
-            logging.warning("Keine verbundenen Kanäle für PTT-Chat-Ausgabe.")
+        """Sendet eine PTT-Nachricht wie eine Chat-Nachricht an die zentrale Verarbeitungslogik."""
+        await self.process_user_message(text)
 
 def cleanup_temp_audio_files() -> None:
     """Removes leftover temporary audio files (*.mp3, aufnahme.wav) from the working directory.
@@ -337,5 +337,13 @@ if __name__ == "__main__":
             new_loop = asyncio.new_event_loop()
             asyncio.set_event_loop(new_loop)
             new_loop.run_until_complete(bot.send_ptt_message(text))
-    threading.Thread(target=ptt_listener_background, args=(ptt_chat_callback,), daemon=True).start()
+    try:
+        threading.Thread(
+            target=ptt_listener_background,
+            args=(ptt_chat_callback,),
+            daemon=True
+        ).start()
+        logging.info("PTT-Listener erfolgreich gestartet.")
+    except Exception as exc:
+        logging.error("PTT-Listener konnte nicht gestartet werden: %s", exc)
     bot.run()
