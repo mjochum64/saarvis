@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.5.0 (2025-04-19)
+- Version bump to 1.4.0 in all relevant files.
+- Cache function added for all requests.
+- History added for user-context. (Default: PTT_CONTEXT_SIZE=5)
+
 ## 1.4.0 (2025-04-18)
 - Version bump to 1.4.0 in all relevant files.
 - Improved error handling and logging in PTT and main bot logic.
