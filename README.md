@@ -30,20 +30,20 @@ For installation, the [uv](https://docs.astral.sh/uv/) tool is used instead of t
 
 2. **Create a .env file** (example):
 
-   ```env
-TMI_TOKEN=<your_twitch_token>
-CLIENT_ID=<your_twitch_client_id>
-KI_ACCESS_LEVEL=follower #or sub
-TWITCH_CHANNEL=<your_channel>
-OPENAI_API_KEY=<your_openai_key>
-OPENAI_MODELL=gpt-4o
-OPENAI_SYSTEM_PROMPT_FILE=prompt.txt
-OPENAI_MAX_TOKENS=500
-ELEVENLABS_API_KEY=<your_elevenlabs_key>
-ELEVENLABS_VOICE_ID=<your_voice_id>
-ELEVENLABS_MODEL_ID=eleven_multilingual_v2
-IGNORED_USERS=saaromansbot,streamelements,anotherbot
-LOG_LEVEL=INFO #or DEBUG
+   ```
+   TMI_TOKEN=<your_twitch_token>
+   CLIENT_ID=<your_twitch_client_id>
+   KI_ACCESS_LEVEL=follower #or sub
+   TWITCH_CHANNEL=<your_channel>
+   OPENAI_API_KEY=<your_openai_key>
+   OPENAI_MODELL=gpt-4o
+   OPENAI_SYSTEM_PROMPT_FILE=prompt.txt
+   OPENAI_MAX_TOKENS=500
+   ELEVENLABS_API_KEY=<your_elevenlabs_key>
+   ELEVENLABS_VOICE_ID=<your_voice_id>
+   ELEVENLABS_MODEL_ID=eleven_multilingual_v2
+   IGNORED_USERS=saaromansbot,streamelements,anotherbot
+   LOG_LEVEL=INFO #or DEBUG
    ```
 
 3. **Create prompt.txt**:
@@ -56,23 +56,7 @@ LOG_LEVEL=INFO #or DEBUG
 
 ## Dependency Check
 
-On startup, saarvis checks for all required environment variables. If any are missing, the bot will exit with a clear error message. Make sure your `.env` file contains at least the following:
-
-```env
-TMI_TOKEN=<your_twitch_token>
-CLIENT_ID=<your_twitch_client_id>
-KI_ACCESS_LEVEL=follower #or sub
-TWITCH_CHANNEL=<your_channel>
-OPENAI_API_KEY=<your_openai_key>
-OPENAI_MODELL=gpt-4o
-OPENAI_SYSTEM_PROMPT_FILE=prompt.txt
-OPENAI_MAX_TOKENS=500
-ELEVENLABS_API_KEY=<your_elevenlabs_key>
-ELEVENLABS_VOICE_ID=<your_voice_id>
-ELEVENLABS_MODEL_ID=eleven_multilingual_v2
-IGNORED_USERS=saaromansbot,streamelements,anotherbot
-LOG_LEVEL=INFO #or DEBUG
-```
+On startup, saarvis checks for all required environment variables. If any are missing, the bot will exit with a clear error message. 
 
 ## Customizing the Prompt
 
@@ -90,7 +74,7 @@ The answers should always use informal "you".
 
 You can configure which users should be ignored by the bot (e.g., other bots like "saaromansbot" or "streamelements") using the IGNORED_USERS environment variable in your `.env` file:
 
-```env
+```
 IGNORED_USERS=saaromansbot,streamelements,anotherbot
 ```
 
