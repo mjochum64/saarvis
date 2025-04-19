@@ -47,9 +47,17 @@ class PTTRecorder:
             self.context_memory.append(transcript)
             if len(self.context_memory) > self.context_size:
                 self.context_memory.pop(0)
-            # Build context as prompt
-            context_prompt = "\n".join(self.context_memory[:-1]) if len(self.context_memory) > 1 else ""
-            full_prompt = f"{context_prompt}\n{transcript}" if context_prompt else transcript
+            # Build prompt: Kontext als Hintergrund, letzte Frage explizit hervorheben
+            if len(self.context_memory) > 1:
+                context_prompt = "\n".join(self.context_memory[:-1])
+                full_prompt = (
+                    "Vorherige Konversation (nur als Kontext, nicht beantworten):\n"
+                    f"{context_prompt}\n\n"
+                    "Letzte Frage (bitte nur diese beantworten):\n"
+                    f"{self.context_memory[-1]}"
+                )
+            else:
+                full_prompt = self.context_memory[-1]
             if self.send_chat_callback:
                 try:
                     self.send_chat_callback(full_prompt)
